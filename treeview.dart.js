@@ -399,19 +399,6 @@ var $$ = {};
     toString$0: function(receiver) {
       return H.IterableMixinWorkaround_toStringIterable(receiver, "[", "]");
     },
-    toList$1$growable: function(receiver, growable) {
-      var t1;
-      if (growable)
-        return H.setRuntimeTypeInfo(receiver.slice(), [H.getTypeArgumentByIndex(receiver, 0)]);
-      else {
-        t1 = H.setRuntimeTypeInfo(receiver.slice(), [H.getTypeArgumentByIndex(receiver, 0)]);
-        t1.fixed$length = init;
-        return t1;
-      }
-    },
-    toList$0: function($receiver) {
-      return this.toList$1$growable($receiver, true);
-    },
     get$iterator: function(receiver) {
       return new H.ListIterator(receiver, receiver.length, 0, null);
     },
@@ -984,7 +971,7 @@ var $$ = {};
       if (t1 != null)
         t1.clear$0(0);
       for (t1 = this.ports, t2 = t1.get$values(t1), t3 = t2._iterable, t2 = H.setRuntimeTypeInfo(new H.MappedIterator(null, t3.get$iterator(t3), t2._f), [H.getTypeArgumentByIndex(t2, 0), H.getTypeArgumentByIndex(t2, 1)]); t2.moveNext$0();)
-        t2._current._close$0();
+        t2.__internal$_current._close$0();
       if (t1._collection$_length > 0) {
         t1._last = null;
         t1._first = null;
@@ -1008,7 +995,7 @@ var $$ = {};
       t1 = this.doneHandlers;
       if (t1 != null) {
         for (t1 = new H.ListIterator(t1, t1.length, 0, null); t1.moveNext$0();)
-          t1._current.send$1(null);
+          t1.__internal$_current.send$1(null);
         this.doneHandlers = null;
       }
     }, "call$0", "get$kill", 0, 0, 1]
@@ -1435,13 +1422,16 @@ var $$ = {};
       return ["list", t1, this._serializeList$1(list)];
     },
     visitMap$1: function(map) {
-      var copyId, t1;
+      var copyId, t1, t2, keys;
       copyId = this._visited.$index(0, map);
       if (copyId != null)
         return ["ref", copyId];
       t1 = this._nextFreeRefId++;
       this._visited.$indexSet(0, map, t1);
-      return ["map", t1, this._serializeList$1(J.toList$0$ax(map.get$keys())), this._serializeList$1(J.toList$0$ax(map.get$values(map)))];
+      t2 = map.get$keys();
+      keys = this._serializeList$1(P.List_List$from(t2, true, H.getRuntimeTypeArgument(t2, "IterableBase", 0)));
+      t2 = map.get$values(map);
+      return ["map", t1, keys, this._serializeList$1(P.List_List$from(t2, true, H.getRuntimeTypeArgument(t2, "IterableBase", 0)))];
     },
     _serializeList$1: function(list) {
       var t1, len, result, i, t2;
@@ -2800,7 +2790,7 @@ var $$ = {};
   IterableMixinWorkaround_forEach: function(iterable, f) {
     var t1;
     for (t1 = new H.ListIterator(iterable, iterable.length, 0, null); t1.moveNext$0();)
-      f.call$1(t1._current);
+      f.call$1(t1.__internal$_current);
   },
   IterableMixinWorkaround_toStringIterable: function(iterable, leftDelimiter, rightDelimiter) {
     var result, i, t1;
@@ -2856,23 +2846,23 @@ var $$ = {};
     return symbol.get$_name();
   },
   ListIterator: {
-    "^": "Object;_iterable,_length,_index,_current",
+    "^": "Object;_iterable,__internal$_length,_index,__internal$_current",
     get$current: function() {
-      return this._current;
+      return this.__internal$_current;
     },
     moveNext$0: function() {
       var t1, t2, $length, t3;
       t1 = this._iterable;
       t2 = J.getInterceptor$asx(t1);
       $length = t2.get$length(t1);
-      if (this._length !== $length)
+      if (this.__internal$_length !== $length)
         throw H.wrapException(P.ConcurrentModificationError$(t1));
       t3 = this._index;
       if (t3 >= $length) {
-        this._current = null;
+        this.__internal$_current = null;
         return false;
       }
-      this._current = t2.elementAt$1(t1, t3);
+      this.__internal$_current = t2.elementAt$1(t1, t3);
       ++this._index;
       return true;
     }
@@ -2900,21 +2890,21 @@ var $$ = {};
     "^": "MappedIterable;_iterable,_f"
   },
   MappedIterator: {
-    "^": "Iterator;_current,__internal$_iterator,_f",
+    "^": "Iterator;__internal$_current,__internal$_iterator,_f",
     _f$1: function(arg0) {
       return this._f.call$1(arg0);
     },
     moveNext$0: function() {
       var t1 = this.__internal$_iterator;
       if (t1.moveNext$0()) {
-        this._current = this._f$1(t1.get$current());
+        this.__internal$_current = this._f$1(t1.get$current());
         return true;
       }
-      this._current = null;
+      this.__internal$_current = null;
       return false;
     },
     get$current: function() {
-      return this._current;
+      return this.__internal$_current;
     }
   },
   FixedLengthListMixin: {
@@ -4703,12 +4693,6 @@ var $$ = {};
       for (t1 = this.get$iterator(this); t1.moveNext$0();)
         f.call$1(t1.get$current());
     },
-    toList$1$growable: function(_, growable) {
-      return P.List_List$from(this, growable, H.getRuntimeTypeArgument(this, "IterableBase", 0));
-    },
-    toList$0: function($receiver) {
-      return this.toList$1$growable($receiver, true);
-    },
     get$length: function(_) {
       var it, count;
       it = this.get$iterator(this);
@@ -5328,6 +5312,17 @@ var $$ = {};
     },
     "%": "CSS2Properties|CSSStyleDeclaration|MSStyleCSSProperties"
   },
+  Document: {
+    "^": "Node;",
+    getElementsByClassName$1: function(receiver, classNames) {
+      return receiver.getElementsByClassName(classNames);
+    },
+    "%": "Document|HTMLDocument|XMLDocument"
+  },
+  DocumentFragment: {
+    "^": "Node;",
+    "%": ";DocumentFragment"
+  },
   DomException: {
     "^": "Interceptor;",
     toString$0: function(receiver) {
@@ -5336,9 +5331,12 @@ var $$ = {};
     "%": "DOMException"
   },
   Element: {
-    "^": "Node;",
+    "^": "Node;style=",
     toString$0: function(receiver) {
       return receiver.localName;
+    },
+    getElementsByClassName$1: function(receiver, classNames) {
+      return receiver.getElementsByClassName(classNames);
     },
     "%": "SVGAElement|SVGAltGlyphDefElement|SVGAltGlyphElement|SVGAltGlyphItemElement|SVGAnimateElement|SVGAnimateMotionElement|SVGAnimateTransformElement|SVGAnimationElement|SVGCircleElement|SVGClipPathElement|SVGComponentTransferFunctionElement|SVGCursorElement|SVGDefsElement|SVGDescElement|SVGDiscardElement|SVGElement|SVGEllipseElement|SVGFEBlendElement|SVGFEColorMatrixElement|SVGFEComponentTransferElement|SVGFECompositeElement|SVGFEConvolveMatrixElement|SVGFEDiffuseLightingElement|SVGFEDisplacementMapElement|SVGFEDistantLightElement|SVGFEDropShadowElement|SVGFEFloodElement|SVGFEFuncAElement|SVGFEFuncBElement|SVGFEFuncGElement|SVGFEFuncRElement|SVGFEGaussianBlurElement|SVGFEImageElement|SVGFEMergeElement|SVGFEMergeNodeElement|SVGFEMorphologyElement|SVGFEOffsetElement|SVGFEPointLightElement|SVGFESpecularLightingElement|SVGFESpotLightElement|SVGFETileElement|SVGFETurbulenceElement|SVGFilterElement|SVGFontElement|SVGFontFaceElement|SVGFontFaceFormatElement|SVGFontFaceNameElement|SVGFontFaceSrcElement|SVGFontFaceUriElement|SVGForeignObjectElement|SVGGElement|SVGGeometryElement|SVGGlyphElement|SVGGlyphRefElement|SVGGradientElement|SVGGraphicsElement|SVGHKernElement|SVGImageElement|SVGLineElement|SVGLinearGradientElement|SVGMPathElement|SVGMarkerElement|SVGMaskElement|SVGMetadataElement|SVGMissingGlyphElement|SVGPathElement|SVGPatternElement|SVGPolygonElement|SVGPolylineElement|SVGRadialGradientElement|SVGRectElement|SVGSVGElement|SVGScriptElement|SVGSetElement|SVGStopElement|SVGStyleElement|SVGSwitchElement|SVGSymbolElement|SVGTSpanElement|SVGTextContentElement|SVGTextElement|SVGTextPathElement|SVGTextPositioningElement|SVGTitleElement|SVGUseElement|SVGVKernElement|SVGViewElement;Element"
   },
@@ -5400,11 +5398,16 @@ var $$ = {};
   },
   Node: {
     "^": "EventTarget;",
+    _clearChildren$0: function(receiver) {
+      var t1;
+      for (; t1 = receiver.firstChild, t1 != null;)
+        receiver.removeChild(t1);
+    },
     toString$0: function(receiver) {
       var t1 = receiver.nodeValue;
       return t1 == null ? J.Interceptor.prototype.toString$0.call(this, receiver) : t1;
     },
-    "%": "Attr|Document|DocumentFragment|DocumentType|HTMLDocument|Notation|ShadowRoot|XMLDocument;Node"
+    "%": "Attr|DocumentType|Notation;Node"
   },
   NodeList: {
     "^": "Interceptor_ListMixin_ImmutableListMixin0;",
@@ -5435,6 +5438,13 @@ var $$ = {};
   SelectElement: {
     "^": "HtmlElement;length=",
     "%": "HTMLSelectElement"
+  },
+  ShadowRoot: {
+    "^": "DocumentFragment;",
+    getElementsByClassName$1: function(receiver, className) {
+      return receiver.getElementsByClassName(className);
+    },
+    "%": "ShadowRoot"
   },
   SpeechRecognitionError: {
     "^": "Event;error=",
@@ -5488,60 +5498,13 @@ var $$ = {};
     },
     "%": "DOMWindow|Window"
   },
-  _NamedNodeMap: {
-    "^": "Interceptor_ListMixin_ImmutableListMixin1;",
-    get$length: function(receiver) {
-      return receiver.length;
-    },
-    $index: function(receiver, index) {
-      var t1 = receiver.length;
-      if (index >>> 0 !== index || index >= t1)
-        throw H.wrapException(P.RangeError$range(index, 0, t1));
-      return receiver[index];
-    },
-    $indexSet: function(receiver, index, value) {
-      throw H.wrapException(P.UnsupportedError$("Cannot assign element of immutable List."));
-    },
-    elementAt$1: function(receiver, index) {
-      if (index < 0 || index >= receiver.length)
-        return H.ioore(receiver, index);
-      return receiver[index];
-    },
-    $isList: true,
-    $asList: function() {
-      return [W.Node];
-    },
-    $isJavaScriptIndexingBehavior: true,
-    "%": "MozNamedAttrMap|NamedNodeMap"
-  },
   Interceptor_CssStyleDeclarationBase: {
     "^": "Interceptor+CssStyleDeclarationBase;"
   },
   CssStyleDeclarationBase: {
     "^": "Object;",
-    set$backgroundImage: function(receiver, value) {
-      this.setProperty$3(receiver, "background-image", value, "");
-    },
     set$backgroundPosition: function(receiver, value) {
       this.setProperty$3(receiver, "background-position", value, "");
-    },
-    set$backgroundSize: function(receiver, value) {
-      this.setProperty$3(receiver, "background-size", value, "");
-    },
-    set$display: function(receiver, value) {
-      this.setProperty$3(receiver, "display", value, "");
-    },
-    set$height: function(receiver, value) {
-      this.setProperty$3(receiver, "height", value, "");
-    },
-    set$padding: function(receiver, value) {
-      this.setProperty$3(receiver, "padding", value, "");
-    },
-    set$verticalAlign: function(receiver, value) {
-      this.setProperty$3(receiver, "vertical-align", value, "");
-    },
-    set$width: function(receiver, value) {
-      this.setProperty$3(receiver, "width", value, "");
     }
   },
   Interceptor_ListMixin: {
@@ -5567,20 +5530,6 @@ var $$ = {};
   },
   Interceptor_ListMixin_ImmutableListMixin0: {
     "^": "Interceptor_ListMixin0+ImmutableListMixin;",
-    $isList: true,
-    $asList: function() {
-      return [W.Node];
-    }
-  },
-  Interceptor_ListMixin1: {
-    "^": "Interceptor+ListMixin;",
-    $isList: true,
-    $asList: function() {
-      return [W.Node];
-    }
-  },
-  Interceptor_ListMixin_ImmutableListMixin1: {
-    "^": "Interceptor_ListMixin1+ImmutableListMixin;",
     $isList: true,
     $asList: function() {
       return [W.Node];
@@ -5657,26 +5606,26 @@ var $$ = {};
       return this._iterator.moveNext$0();
     },
     get$current: function() {
-      return this._iterator._html$_current;
+      return this._iterator._current;
     }
   },
   FixedSizeListIterator: {
-    "^": "Object;_array,_html$_length,_position,_html$_current",
+    "^": "Object;_array,_length,_position,_current",
     moveNext$0: function() {
       var nextPosition, t1;
       nextPosition = this._position + 1;
-      t1 = this._html$_length;
+      t1 = this._length;
       if (nextPosition < t1) {
-        this._html$_current = J.$index$asx(this._array, nextPosition);
+        this._current = J.$index$asx(this._array, nextPosition);
         this._position = nextPosition;
         return true;
       }
-      this._html$_current = null;
+      this._current = null;
       this._position = t1;
       return false;
     },
     get$current: function() {
-      return this._html$_current;
+      return this._current;
     }
   }
 }],
@@ -5782,71 +5731,43 @@ var $$ = {};
     throw "Unable to print message: " + String(string);
   }
 }],
-["", "treeview.dart", , N, {
+["", "treenode.dart", , U, {
   "^": "",
-  main: [function() {
-    var entry, t1;
-    for (entry = null; true;) {
-      t1 = $.get$Entry_random();
-      entry = new N.Entry(null, null, t1.nextInt$1(36), t1.nextInt$1(14), document.createElement("table", null), true);
-      if (entry.get$children(entry).length !== 0)
-        break;
-    }
-    entry.update$0();
-    document.body.appendChild(entry.table);
-  }, "call$0", "main$closure", 0, 0, 1],
-  TreeNode: {
+  TreeNodeTemplate: {
     "^": "Object;table>",
     update$0: function() {
       this.updateNode$0();
-      if (!this.collapsed || this.get$parent(this) == null)
+      if (!this.get$collapsed() || this.get$parent(this) == null)
         for (var t1 = this.get$children(this), t1 = new H.ListIterator(t1, t1.length, 0, null); t1.moveNext$0();)
-          t1._current.update$0();
+          t1.__internal$_current.update$0();
     },
     updateNode$0: function() {
-      var noChildren, t1, t2, t3, lastNode, row, cell, span, t4;
+      var noChildren, t1, t2, t3, lastNode, row, cell, span;
       noChildren = this.get$children(this).length === 0;
-      for (t1 = this.table, t2 = J.getInterceptor$x(t1); !J.get$isEmpty$asx(t2.get$rows(t1));)
+      for (t1 = this.treenode$StandardTreeNode$table, t2 = J.getInterceptor$x(t1); !J.get$isEmpty$asx(t2.get$rows(t1));)
         t2.deleteRow$1(t1, 0);
-      t1.setAttribute("cellspacing", "0px");
-      t1.setAttribute("cellpadding", "0px");
-      t1.setAttribute("margin", "0px");
       if (this.get$parent(this) != null) {
         t3 = this.get$parent(this);
-        lastNode = this === J.get$last$ax(t3.get$children(t3));
+        lastNode = this === C.JSArray_methods.get$last(t3.get$children(t3));
         row = t2.addRow$0(t1);
         cell = J.addCell$0$x(row);
-        t3 = cell.style;
-        J.getInterceptor$x(t3).set$backgroundImage(t3, "url(structure.png)");
-        C.CssStyleDeclaration_methods.set$backgroundSize(t3, "54px 100%");
-        C.CssStyleDeclaration_methods.set$backgroundPosition(t3, lastNode ? "-18px 0px" : "-9px 0px");
-        C.CssStyleDeclaration_methods.set$verticalAlign(t3, "center");
-        C.CssStyleDeclaration_methods.set$width(t3, "9px");
+        cell.className = lastNode ? "lastnodeline" : "nodeline";
         span = document.createElement("span", null);
-        t3 = span.style;
-        J.getInterceptor$x(t3).set$width(t3, "9px");
-        C.CssStyleDeclaration_methods.set$height(t3, "9px");
-        C.CssStyleDeclaration_methods.set$display(t3, "block");
-        C.CssStyleDeclaration_methods.set$backgroundImage(t3, "url(structure.png)");
         if (noChildren)
-          t4 = "-27px";
+          t3 = "nochildrenitem";
         else
-          t4 = this.collapsed ? "-36px" : "-45px";
-        C.CssStyleDeclaration_methods.set$backgroundPosition(t3, t4 + " 0px");
+          t3 = this.get$collapsed() ? "collapseditem" : "expandeditem";
+        span.className = t3;
         cell.appendChild(span);
         row.insertCell(-1).appendChild(this.render$0());
         if (!noChildren) {
           t3 = H.setRuntimeTypeInfo(new W._ElementEventStreamImpl(cell, C.EventStreamProvider_click._eventType, false), [null]);
-          H.setRuntimeTypeInfo(new W._EventStreamSubscription(0, t3._target, t3._eventType, W._wrapZone(new N.TreeNode_updateNode_closure(this)), t3._useCapture), [H.getTypeArgumentByIndex(t3, 0)])._tryResume$0();
-          if (!this.collapsed) {
+          H.setRuntimeTypeInfo(new W._EventStreamSubscription(0, t3._target, t3._eventType, W._wrapZone(new U.TreeNodeTemplate_updateNode_closure(this)), t3._useCapture), [H.getTypeArgumentByIndex(t3, 0)])._tryResume$0();
+          if (!this.get$collapsed()) {
             row = t2.addRow$0(t1);
             cell = J.addCell$0$x(row);
-            if (!lastNode) {
-              t1 = cell.style;
-              J.getInterceptor$x(t1).set$backgroundImage(t1, "url(structure.png)");
-              C.CssStyleDeclaration_methods.set$backgroundSize(t1, "54px 100%");
-              C.CssStyleDeclaration_methods.set$backgroundPosition(t1, "-9px 0px");
-            }
+            if (!lastNode)
+              cell.className = "nodeline";
             this.appendChildren$1(row.insertCell(-1));
           }
         }
@@ -5856,82 +5777,90 @@ var $$ = {};
     appendChildren$1: function(cell) {
       var t1;
       for (t1 = this.get$children(this), t1 = new H.ListIterator(t1, t1.length, 0, null); t1.moveNext$0();)
-        cell.appendChild(J.get$table$x(t1._current));
+        cell.appendChild(J.get$table$x(t1.__internal$_current));
     }
   },
-  TreeNode_updateNode_closure: {
+  TreeNodeTemplate_updateNode_closure: {
     "^": "Closure:8;this_0",
     call$1: function($event) {
-      var t1 = this.this_0;
-      t1.collapsed = !t1.collapsed;
-      t1.update$0();
+      this.this_0.clickOnExpander$0();
     }
   },
-  Entry: {
-    "^": "TreeNode;_children,_parent,iconX,iconY,table,collapsed",
+  StandardTreeNode: {
+    "^": "TreeNodeTemplate;table:treenode$StandardTreeNode$table>",
+    get$collapsed: function() {
+      return this._collapsed;
+    },
     get$children: function(_) {
-      var t1, quantity, t2, t0, n, t3, t4, t5;
-      t1 = this._children;
-      if (t1 == null) {
-        t1 = $.get$Entry_random();
-        quantity = t1.nextInt$1(5);
-        t2 = H.setRuntimeTypeInfo(Array(quantity), [N.Entry]);
-        this._children = t2;
-        for (t0 = t2, t2 = t1, t1 = t0, n = 0; n < quantity; ++n, t1 = t5) {
-          t3 = t2.nextInt$1(36);
-          t4 = t2.nextInt$1(14);
-          t5 = document.createElement("table", null);
-          if (n >= t1.length)
-            return H.ioore(t1, n);
-          t1[n] = new N.Entry(null, null, t3, t4, t5, true);
-          t5 = this._children;
-          if (n >= t5.length)
-            return H.ioore(t5, n);
-          t5[n]._parent = this;
-        }
-      }
-      return t1;
+      return this._children;
     },
     get$parent: function(_) {
       return this._parent;
     },
-    render$0: function() {
-      var tbl, row, image, t1, cell;
-      tbl = document.createElement("table", null);
-      tbl.setAttribute("cellspacing", "0px");
-      tbl.setAttribute("cellpadding", "0px");
-      tbl.setAttribute("margin", "0px");
-      row = J.addRow$0$x(tbl);
-      image = document.createElement("span", null);
-      t1 = image.style;
-      J.getInterceptor$x(t1).set$display(t1, "block");
-      C.CssStyleDeclaration_methods.set$width(t1, "4px");
-      C.CssStyleDeclaration_methods.set$height(t1, "1px");
-      C.CssStyleDeclaration_methods.set$padding(t1, "0px");
-      C.CssStyleDeclaration_methods.set$backgroundImage(t1, "url(structure.png)");
-      C.CssStyleDeclaration_methods.set$backgroundPosition(t1, "-32px -4px");
-      cell = J.addCell$0$x(row);
-      t1 = cell.style;
-      J.getInterceptor$x(t1).set$width(t1, "4px");
-      C.CssStyleDeclaration_methods.set$verticalAlign(t1, "center");
-      cell.appendChild(image);
-      image = document.createElement("span", null);
-      t1 = image.style;
-      J.getInterceptor$x(t1).set$display(t1, "block");
-      C.CssStyleDeclaration_methods.set$width(t1, "16px");
-      C.CssStyleDeclaration_methods.set$height(t1, "16px");
-      C.CssStyleDeclaration_methods.set$padding(t1, "0px");
-      C.CssStyleDeclaration_methods.set$backgroundImage(t1, "url(icons.png)");
-      C.CssStyleDeclaration_methods.set$backgroundPosition(t1, "" + -16 * this.iconX + "px " + -16 * this.iconY + "px");
-      cell = row.insertCell(-1);
-      t1 = cell.style;
-      J.getInterceptor$x(t1).set$height(t1, "17px");
-      C.CssStyleDeclaration_methods.set$verticalAlign(t1, "bottom");
-      cell.appendChild(image);
-      row.insertCell(-1).textContent = " entry" + H.Primitives_objectHashCode(this);
-      return tbl;
+    clickOnExpander$0: function() {
+      this._collapsed = !this._collapsed;
+      this.update$0();
+    }
+  }
+}],
+["", "treeview.dart", , N, {
+  "^": "",
+  main: [function() {
+    var entry, t1, t2, t3, t4;
+    for (entry = null; true;) {
+      t1 = $.get$Entry_random();
+      t2 = t1.nextInt$1(36);
+      t1 = t1.nextInt$1(14);
+      t3 = document.createElement("table", null);
+      t4 = [];
+      t4.$builtinTypeInfo = [N.Entry];
+      entry = new N.Entry(t2, t1, false, t3, true, t4, null, document.createElement("table", null));
+      if (entry.get$children(entry).length !== 0)
+        break;
+    }
+    entry.update$0();
+    J._clearChildren$0$x(document.body);
+    document.body.appendChild(entry.treenode$StandardTreeNode$table);
+  }, "call$0", "main$closure", 0, 0, 1],
+  Entry: {
+    "^": "StandardTreeNode;iconX,iconY,filled,treenode$StandardTreeNode$table,_collapsed,_children,_parent,table",
+    get$children: function(_) {
+      var t1, quantity, t2, n, t3, t4, t5, t6;
+      if (!this.filled) {
+        t1 = $.get$Entry_random();
+        quantity = t1.nextInt$1(5);
+        for (t2 = this._children, n = 0; n < quantity; ++n) {
+          t3 = t1.nextInt$1(36);
+          t4 = t1.nextInt$1(14);
+          t5 = document.createElement("table", null);
+          t6 = [];
+          t6.$builtinTypeInfo = [N.Entry];
+          t3 = new N.Entry(t3, t4, false, t5, true, t6, null, document.createElement("table", null));
+          t2.push(t3);
+          t3._parent = this;
+        }
+        this.filled = true;
+      }
+      return U.StandardTreeNode.prototype.get$children.call(this, this);
     },
-    static: {"^": "Entry_random"}
+    render$0: function() {
+      var item, t1, t2;
+      item = $.get$Entry_template().cloneNode(true);
+      t1 = J.getInterceptor$x(item);
+      t2 = t1.getElementsByClassName$1(item, "itemicon");
+      if (0 >= t2.length)
+        return H.ioore(t2, 0);
+      J.set$backgroundPosition$x(J.get$style$x(t2[0]), "" + -16 * this.iconX + "px " + -16 * this.iconY + "px");
+      t1 = t1.getElementsByClassName$1(item, "itemcell");
+      if (0 >= t1.length)
+        return H.ioore(t1, 0);
+      t1[0].textContent = "\u00a0entry" + H.Primitives_objectHashCode(this);
+      return item;
+    },
+    $asStandardTreeNode: function() {
+      return [N.Entry];
+    },
+    static: {"^": "Entry_random,Entry_template"}
   }
 },
 1],
@@ -5946,10 +5875,10 @@ P.$int.$isObject = true;
 P.num.$isObject = true;
 P.String.$isString = true;
 P.String.$isObject = true;
+N.Entry.$isObject = true;
 P.Duration.$isObject = true;
 W.MouseEvent.$isObject = true;
 W.TableRowElement.$isObject = true;
-N.Entry.$isObject = true;
 H.RawReceivePortImpl.$isObject = true;
 H._IsolateEvent.$isObject = true;
 H._IsolateContext.$isObject = true;
@@ -6059,14 +5988,14 @@ J.$indexSet$ax = function(receiver, a0, a1) {
     return receiver[a0] = a1;
   return J.getInterceptor$ax(receiver).$indexSet(receiver, a0, a1);
 };
+J._clearChildren$0$x = function(receiver) {
+  return J.getInterceptor$x(receiver)._clearChildren$0(receiver);
+};
 J.addCell$0$x = function(receiver) {
   return J.getInterceptor$x(receiver).addCell$0(receiver);
 };
 J.addEventListener$3$x = function(receiver, a0, a1, a2) {
   return J.getInterceptor$x(receiver).addEventListener$3(receiver, a0, a1, a2);
-};
-J.addRow$0$x = function(receiver) {
-  return J.getInterceptor$x(receiver).addRow$0(receiver);
 };
 J.contains$1$asx = function(receiver, a0) {
   return J.getInterceptor$asx(receiver).contains$1(receiver, a0);
@@ -6086,11 +6015,11 @@ J.get$isEmpty$asx = function(receiver) {
 J.get$iterator$ax = function(receiver) {
   return J.getInterceptor$ax(receiver).get$iterator(receiver);
 };
-J.get$last$ax = function(receiver) {
-  return J.getInterceptor$ax(receiver).get$last(receiver);
-};
 J.get$length$asx = function(receiver) {
   return J.getInterceptor$asx(receiver).get$length(receiver);
+};
+J.get$style$x = function(receiver) {
+  return J.getInterceptor$x(receiver).get$style(receiver);
 };
 J.get$table$x = function(receiver) {
   return J.getInterceptor$x(receiver).get$table(receiver);
@@ -6101,13 +6030,12 @@ J.remove$1$ax = function(receiver, a0) {
 J.removeEventListener$3$x = function(receiver, a0, a1, a2) {
   return J.getInterceptor$x(receiver).removeEventListener$3(receiver, a0, a1, a2);
 };
-J.toList$0$ax = function(receiver) {
-  return J.getInterceptor$ax(receiver).toList$0(receiver);
+J.set$backgroundPosition$x = function(receiver, value) {
+  return J.getInterceptor$x(receiver).set$backgroundPosition(receiver, value);
 };
 J.toString$0 = function(receiver) {
   return J.getInterceptor(receiver).toString$0(receiver);
 };
-C.CssStyleDeclaration_methods = W.CssStyleDeclaration.prototype;
 C.JSArray_methods = J.JSArray.prototype;
 C.JSInt_methods = J.JSInt.prototype;
 C.JSNumber_methods = J.JSNumber.prototype;
@@ -6368,6 +6296,9 @@ Isolate.$lazy($, "_toStringList", "Maps__toStringList", "get$Maps__toStringList"
 });
 Isolate.$lazy($, "random", "Entry_random", "get$Entry_random", function() {
   return C.C__JSRandom;
+});
+Isolate.$lazy($, "template", "Entry_template", "get$Entry_template", function() {
+  return document.getElementById("itemtemplate");
 });
 // Native classes
 
